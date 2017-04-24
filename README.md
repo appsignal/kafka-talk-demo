@@ -8,7 +8,13 @@ brew install zookeeper
 brew install kafka
 ```
 
-Run them and start a Rails server:
+Then run:
+
+```
+bundle
+```
+
+Start foreman, which will start Kafka/Zookeeper, and a Rails server:
 
 ```
 bin/foreman start
