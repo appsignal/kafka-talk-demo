@@ -12,6 +12,7 @@ Then run:
 
 ```
 bundle
+bin/rake db:migrate
 ```
 
 Start foreman, which will start Kafka/Zookeeper, and a Rails server:
