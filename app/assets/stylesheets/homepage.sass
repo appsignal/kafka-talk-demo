@@ -1,7 +1,34 @@
-table.stats
-  td.visits
-    width: 100%
+body
+  font: 1rem/1.5 sans-serif
+  padding: 2rem
+  background: #efefef
 
-    div.bar
-      background: #000
-      height: 10px
+h1
+  margin: 0 0 1rem 0
+
+table.stats
+  width: 100%
+  border: 1px solid #ccc
+  background: #fff
+  border-collapse: collapse
+
+th
+  white-space: nowrap
+  text-align: left
+  border-bottom: 1px solid #ccc
+  padding: 1rem
+
+td
+  border-bottom: 1px solid #ccc
+  width: 100%
+  padding: 1rem
+
+div.bar
+  background: #EFAA04
+  height: 10px
+  min-width: 5px
+  border-radius: 3px
+
+@for $i from 1 through 25
+  tr:nth-child(#{$i}n) .bar
+    filter: hue-rotate(#{$i * 53}deg)

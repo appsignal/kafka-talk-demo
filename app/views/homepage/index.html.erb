@@ -3,8 +3,8 @@
 <table class="stats">
     <% @country_stats.each do |country_stat| %>
     <tr>
-      <th><%= country_stat.country_code %> </th>
-      <td class="visits <%= country_stat.country_code %>">
+      <th><%= truncate(country_stat.country_code, length: 20) %> </th>
+      <td>
         <%= number_with_delimiter country_stat.visit_count %>
         <div class="bar" style="width: <%= (country_stat.visit_count * 100) / @max_visit_count %>%"></div>
       </td>
