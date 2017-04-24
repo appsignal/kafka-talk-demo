@@ -3,10 +3,14 @@ namespace :processor do
     Dir.glob('log/nginx/tapirgo*') do |file|
       File.read(file).lines.each do |line|
         puts line
-        $kafka.deliver_message(
-          line,
-          topic: 'raw_page_views'
-        )
+        begin
+          $kafka.deliver_message(
+            line,
+            topic: 'raw_page_views'
+          )
+        rescue Kafka::LeaderNotAvailable
+          # This happens the first time we produce sometimes
+        end
       end
     end
   end
