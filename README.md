@@ -22,6 +22,9 @@ bin/foreman start
 bin/rails s
 ```
 
+You need some access log files that we can process. Download some from a
+server you run into `log/access`.
+
 Then run these in separate tabs:
 
 ```

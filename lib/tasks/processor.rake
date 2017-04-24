@@ -1,6 +1,6 @@
 namespace :processor do
   task :import => :environment do
-    Dir.glob('log/nginx/tapirgo*') do |file|
+    Dir.glob('log/access/*') do |file|
       File.read(file).lines.each do |line|
         puts line
         begin
@@ -13,6 +13,7 @@ namespace :processor do
         end
       end
     end
+    puts 'Imported all available logs in log/accesss'
   end
 
   task :preprocess => :environment do
