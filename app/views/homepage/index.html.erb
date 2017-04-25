@@ -1,3 +1,4 @@
+<% if @country_stats.any? %>
 <h1><%= number_with_delimiter @total_visit_count %> visits</h1>
 
 <table class="stats">
@@ -11,3 +12,6 @@
     </tr>
   <% end %>
 </table>
+<% else %>
+<h1>No stats yet</h1>
+<% end %>
