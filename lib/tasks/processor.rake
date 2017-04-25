@@ -74,8 +74,8 @@ namespace :processor do
       @country_counts[page_view['country']] += 1
 
       now_time = Time.now.to_i
-      # Run this code every 10 seconds
-      if @last_tick_time + 10 < now_time
+      # Run this code every 5 seconds
+      if @last_tick_time + 5 < now_time
         # Print current state
         puts "#{Time.now}: Running for #{@country_counts.map(&:first)}"
 
