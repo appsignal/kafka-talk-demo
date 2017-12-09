@@ -3,7 +3,7 @@
 Demo code for the presentation
 [Processing streaming data at a large scale with Kafka](https://speakerdeck.com/thijsc/processing-streaming-data-at-a-large-scale-with-kafka).
 
-Make sure you have Kafka and Zookeeper installed, on mac:
+Make sure you have Kafka and Zookeeper installed, on Mac:
 
 ```
 brew install zookeeper

@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'foreman'
-gem 'ruby-kafka'
+gem 'rdkafka'
 gem 'geoip'
 gem 'useragent'
 

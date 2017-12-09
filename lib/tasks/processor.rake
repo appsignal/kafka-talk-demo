@@ -1,33 +1,53 @@
+KAFKA_CONFIG = {
+  :"bootstrap.servers" => "localhost:9092",
+  :"enable.partition.eof" => false
+}
+
 namespace :processor do
+  task :create_topics do
+    `kafka-topics --create --topic=raw-page-views --zookeeper=127.0.0.1:2181 --partitions=8 --replication-factor=1`
+    `kafka-topics --create --topic=page-views --zookeeper=127.0.0.1:2181 --partitions=8 --replication-factor=1`
+  end
+
   task :import => :environment do
+    puts "Start importing"
+
+    # Create  producer
+    producer = Rdkafka::Config.new(KAFKA_CONFIG).producer
+
+    # Loop through all logs and produce messages
     Dir.glob('log/access/*') do |file|
+      delivery_handles = []
       File.read(file).lines.each do |line|
         puts line
-        begin
-          $kafka.deliver_message(
-            line,
-            topic: 'raw_page_views'
-          )
-        rescue Kafka::LeaderNotAvailable
-          # This happens the first time we produce sometimes
-        end
+        handle = producer.produce(
+          payload: line,
+          topic: 'raw-page-views'
+        )
+        delivery_handles.push(handle)
       end
+      puts "Produced lines in #{file}, waiting for delivery"
+      delivery_handles.each(&:wait)
     end
+
     puts 'Imported all available logs in log/accesss'
   end
 
   task :preprocess => :environment do
     puts 'Started processor'
 
+    # Set up log parsing and geoip
     log_line_regex = %r{^(\S+) - - \[(\S+ \+\d{4})\] "(\S+ \S+ [^"]+)" (\d{3}) (\d+|-) "(.*?)" "([^"]+)"$}
     geoip = GeoIP.new('GeoLiteCity.dat')
 
-    consumer = $kafka.consumer(group_id: 'preprocesser')
-    consumer.subscribe('raw_page_views')
+    # Create  producer and consumer
+    producer = Rdkafka::Config.new(KAFKA_CONFIG).producer
+    consumer = Rdkafka::Config.new(KAFKA_CONFIG.merge(:"group.id" => "preprocessor")).consumer
+    consumer.subscribe("raw-page-views")
 
-    consumer.each_message do |message|
+    consumer.each do |message|
       # We've received a message, parse the log line
-      log_line = message.value.split(log_line_regex)
+      log_line = message.payload.split(log_line_regex)
 
       city = geoip.city(log_line[1])
       next unless city
@@ -49,26 +69,28 @@ namespace :processor do
       puts page_view
 
       # Write it to a topic
-      $kafka.deliver_message(
-        page_view.to_json,
-        topic: 'page_views',
-        partition_key: city.country_code2 # MAGIC HERE
+      producer.produce(
+        key: city.country_code2, # MAGIC HERE
+        payload: page_view.to_json,
+        topic: "page-views"
       )
     end
   end
 
   task :aggregate => :environment do
-    consumer = $kafka.consumer(group_id: 'aggregator')
-    consumer.subscribe('page_views')
+    # Create consumer
+    consumer = Rdkafka::Config.new(KAFKA_CONFIG.merge(:"group.id" => "processor")).consumer
+    consumer.subscribe("page-views")
 
+    # Set up in-memory storage
     @count = 0
     @country_counts = Hash.new(0)
     @last_tick_time = Time.now.to_i
 
     # Consume and aggregate all messages. Update the database with
     # the new counts every 10 seconds.
-    consumer.each_message do |message|
-      page_view = JSON.parse(message.value)
+    consumer.each do |message|
+      page_view = JSON.parse(message.payload)
 
       @count += 1
       @country_counts[page_view['country']] += 1
