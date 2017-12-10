@@ -1,5 +1,6 @@
 KAFKA_CONFIG = {
   :"bootstrap.servers" => "localhost:9092",
+  :"enable.auto.commit" => false,
   :"enable.partition.eof" => false
 }
 
@@ -45,6 +46,10 @@ namespace :processor do
     consumer = Rdkafka::Config.new(KAFKA_CONFIG.merge(:"group.id" => "preprocessor")).consumer
     consumer.subscribe("raw-page-views")
 
+    # To keep track of our last tick
+    @last_tick_time = Time.now.to_i
+
+    delivery_handles = []
     consumer.each do |message|
       # We've received a message, parse the log line
       log_line = message.payload.split(log_line_regex)
@@ -69,11 +74,30 @@ namespace :processor do
       puts page_view
 
       # Write it to a topic
-      producer.produce(
+      handle = producer.produce(
         key: city.country_code2, # MAGIC HERE
         payload: page_view.to_json,
         topic: "page-views"
       )
+      delivery_handles.push(handle)
+
+      now_time = Time.now.to_i
+      # Run this code every 5 seconds
+      if @last_tick_time + 5 < now_time
+        puts "Waiting for delivery and comitting consumer"
+
+        # Wait for delivery of all messages
+        delivery_handles.each(&:wait)
+        delivery_handles.clear
+
+        # Commit consumer position
+        consumer.commit
+
+        # Sleep so we can see the tick in the console
+        sleep 2
+
+        @last_tick_time = now_time
+      end
     end
   end
 
@@ -85,6 +109,8 @@ namespace :processor do
     # Set up in-memory storage
     @count = 0
     @country_counts = Hash.new(0)
+
+    # To keep track of our last tick
     @last_tick_time = Time.now.to_i
 
     # Consume and aggregate all messages. Update the database with
@@ -103,6 +129,9 @@ namespace :processor do
 
         # Update stats in the database
         CountryStat.update_country_counts(@country_counts)
+
+        # Commit consumer position
+        consumer.commit
 
         # Clear aggregation
         @count = 0
