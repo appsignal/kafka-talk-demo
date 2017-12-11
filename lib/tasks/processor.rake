@@ -126,7 +126,7 @@ namespace :processor do
       # Run this code every 5 seconds
       if @last_tick_time + 5 < now_time
         # Print current state
-        puts "#{Time.now}: Running for #{@country_counts.map(&:first)}"
+        puts "#{Time.now}: Running for #{@country_counts.count} countries: #{@country_counts.map(&:first)}"
 
         # Update stats in the database
         CountryStat.update_country_counts(@country_counts)
