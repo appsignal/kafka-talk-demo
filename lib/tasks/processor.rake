@@ -1,6 +1,7 @@
 KAFKA_CONFIG = {
   :"bootstrap.servers" => "localhost:9092",
   :"enable.auto.commit" => false,
+  :"auto.offset.reset" => "earliest",
   :"enable.partition.eof" => false
 }
 
