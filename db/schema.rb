@@ -13,10 +13,10 @@
 ActiveRecord::Schema.define(version: 20170424175055) do
 
   create_table "country_stats", force: :cascade do |t|
-    t.string   "country_code"
-    t.integer  "visit_count"
-    t.datetime "created_at",   null: false
-    t.datetime "updated_at",   null: false
+    t.string "country_code"
+    t.integer "visit_count"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
 end
