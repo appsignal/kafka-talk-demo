@@ -95,7 +95,7 @@ namespace :processor do
         consumer.commit
 
         # Sleep so we can see the tick in the console
-        sleep 2
+        sleep 1
 
         @last_tick_time = now_time
       end
